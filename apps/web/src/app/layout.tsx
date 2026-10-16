@@ -3,8 +3,9 @@ import { headers } from 'next/headers'
 
 import { defaultLocale, resolveLocaleParam } from '@iva360/shared/i18n'
 
+import { inter, guarujaNeue } from '@/shared/lib/fonts'
 import { LOCALE_HEADER } from '@/shared/lib/i18n/constants'
-import { AppThemeProvider } from './providers'
+import { cn } from '@/shared/lib/utils'
 
 import './assets/css/globals.css'
 
@@ -30,10 +31,8 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
   const locale = resolveLocaleParam(headersList.get(LOCALE_HEADER) ?? defaultLocale)
 
   return (
-    <html lang={locale} suppressHydrationWarning>
-      <body className="flex min-h-screen flex-col">
-        <AppThemeProvider>{children}</AppThemeProvider>
-      </body>
+    <html lang={locale} suppressHydrationWarning className={cn(inter.variable, guarujaNeue.variable)}>
+      <body className="flex min-h-screen flex-col">{children}</body>
     </html>
   )
 }
