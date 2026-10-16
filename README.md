@@ -104,10 +104,10 @@ pnpm dev                      # CMS :3333 и Web :3033
 | CMS (Payload admin) | http://localhost:3333/admin |
 | CMS через rewrite фронта | http://localhost:3033/admin |
 | MinIO API | http://127.0.0.1:9002 |
-| MinIO console | http://127.0.0.1:9003 |
+| MinIO console | http://127.0.0.1:9003 — см. **пометку про MinIO** ниже |
 
 **Логин CMS:** `demo@example.ru` / `demo` (в dev включён auto-login)  
-**MinIO console:** `minioadmin` / `minioadmin`
+**MinIO console:** `minioadmin` / `minioadmin` — если консоль доступна (см. пометку ниже)
 
 Админку удобнее открывать через сайт: http://localhost:3033/admin (rewrite на CMS). Прямой URL: http://localhost:3333/admin.  
 В форме Payload кнопка «Сохранить» серая, пока поле не изменено — это не блокировка прав.
@@ -120,6 +120,34 @@ pnpm dev                      # CMS :3333 и Web :3033
 Если volume уже с данными — дамп **не** перезаписывается.
 
 Mongo слушает **27027**, MinIO API **9002** / console **9003**, чтобы не конфликтовать с другим локальным Mongo/MinIO (27017 / 9000).
+
+### Пометка про MinIO (образы и консоль)
+
+Официальные образы `minio/minio` и `minio/mc` больше **не публикуются в Docker Hub** —
+`docker pull minio/minio:<tag>` отдаёт `pull access denied ... repository does not exist`
+(проверено; `quay.io` отвечает `401 UNAUTHORIZED`). Поэтому в `docker-compose.yml`
+используются совместимые образы из legacy-архива Bitnami:
+`bitnamilegacy/minio` (сервер) и `bitnamilegacy/minio-client` (`mc`).
+
+Отличия от прежней схемы (учтены в `docker-compose.yml`):
+
+- данные MinIO лежат в `/bitnami/minio/data` (было `/data`) — это уже прописано в volume `minio_data`;
+- встроенной веб-консоли на **:9003** у актуальных сборок MinIO **больше нет** — в логе виден
+  только `API: http://localhost:9000`. Файлы доступны по API на **:9002**
+  (`http://127.0.0.1:9002/iva360-media/<файл>`) и через CMS/rewrite (`/api/media/file/<файл>`), а для правок в бакете можно использовать `mc`;
+- чтобы вернуться к официальным образам, когда они снова станут доступны, достаточно поменять
+  `image` у сервисов `minio` и `minio-init` и вернуть путь volume на `/data`.
+
+Если на Windows при клоне файлы получили **CRLF** (`core.autocrlf=true`), bash падает
+(`$'\r': command not found`, сломанный `set -euo pipefail` и `source .env`), restore дампов
+не срабатывает, а БД/MinIO остаются пустыми. В репозитории есть `.gitattributes`
+(`*.sh` и `.env.example` → `eol=lf`), но уже выкачанные с CRLF рабочие копии нужно починить один раз:
+
+```bash
+for f in .env .env.example scripts/*.sh backup/*/restore.sh; do
+  sed -i 's/\r$//' "$f"
+done
+```
 
 Обновить seed после правок в CMS (Mongo + файлы MinIO):
 
@@ -188,7 +216,6 @@ apps/web/src/
 ├── widgets/                      # крупные блоки страницы (в demo пустой)
 ├── shared/
 │   ├── api/
-│   ├── config/menu.ts
 │   ├── lib/                      # utils, icons, hooks, i18n
 │   └── ui/                       # компоненты UI Kit
 └── proxy.ts                      # locale rewrite (Next.js 16)
@@ -289,7 +316,10 @@ Payload: коллекции `users` и `media`, локали `ru` / `en`, Lexica
 
 ### Docker
 
-Образы **`mongo:8.0.21`** (replica set `rs0`) и **MinIO**. Сервисы: `mongo`, `mongo-init`, `mongo-restore`, `minio`, `minio-init`.
+Образы: **`docker.io/library/mongo:8.0.21`** (replica set `rs0`) и **MinIO** —
+в этом репозитории совместимые `bitnamilegacy/minio` / `bitnamilegacy/minio-client`,
+т.к. официальные `minio/*` больше не публикуются в Docker Hub (см. «Пометка про MinIO»).
+Сервисы: `mongo`, `mongo-init`, `mongo-restore`, `minio`, `minio-init`.
 
 ---
 

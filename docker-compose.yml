@@ -1,7 +1,7 @@
 services:
   # MongoDB как одноузловой replica set (rs0) — обязательно для транзакций Payload.
   mongo:
-    image: mongo:8.0.21
+    image: docker.io/library/mongo:8.0.21
     restart: unless-stopped
     command: ['--replSet', 'rs0', '--bind_ip_all']
     ports:
@@ -16,7 +16,7 @@ services:
       start_period: 10s
 
   mongo-init:
-    image: mongo:8.0.21
+    image: docker.io/library/mongo:8.0.21
     depends_on:
       mongo:
         condition: service_healthy
@@ -34,7 +34,7 @@ services:
   # Первый запуск (пустой volume): заливает backup/mongo/iva360.archive.gz.
   # Если в БД уже есть users — не трогает данные.
   mongo-restore:
-    image: mongo:8.0.21
+    image: docker.io/library/mongo:8.0.21
     depends_on:
       mongo:
         condition: service_healthy
@@ -46,10 +46,12 @@ services:
     entrypoint: ['bash', '/backup/restore.sh']
 
   # Порты 9002/9003 — чтобы не пересекаться с другим MinIO на 9000/9001.
+  # ВНИМАНИЕ: официальные образы minio/minio больше не публикуются в Docker Hub,
+  # поэтому используются совместимые bitnami-образы (legacy-архив).
+  # Данные MinIO лежат в /bitnami/minio/data (не /data).
   minio:
-    image: minio/minio:RELEASE.2025-09-07T16-13-09Z
+    image: bitnamilegacy/minio:latest
     restart: unless-stopped
-    command: server /data --console-address ':9001'
     ports:
       - '${MINIO_API_PORT:-9002}:9000'
       - '${MINIO_CONSOLE_PORT:-9003}:9001'
@@ -57,16 +59,16 @@ services:
       MINIO_ROOT_USER: ${S3_ACCESS_KEY_ID:-minioadmin}
       MINIO_ROOT_PASSWORD: ${S3_SECRET_ACCESS_KEY:-minioadmin}
     volumes:
-      - minio_data:/data
+      - minio_data:/bitnami/minio/data
     healthcheck:
       test: ['CMD', 'curl', '-f', 'http://localhost:9000/minio/health/live']
       interval: 5s
       timeout: 5s
-      retries: 5
-      start_period: 10s
+      retries: 10
+      start_period: 30s
 
   minio-init:
-    image: minio/mc:latest
+    image: bitnamilegacy/minio-client:latest
     depends_on:
       minio:
         condition: service_healthy

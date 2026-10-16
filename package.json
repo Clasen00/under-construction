@@ -24,7 +24,8 @@
     "payload": "pnpm --filter @iva360/cms payload",
     "setup": "bash scripts/setup.sh",
     "db:backup": "bash scripts/backup-seed.sh",
-    "db:seed": "node scripts/seed-demo.mjs"
+    "db:seed": "node scripts/seed-demo.mjs",
+    "db:seed:content": "node scripts/seed-content.mjs"
   },
   "devDependencies": {
     "cross-env": "^7.0.3",
