@@ -1,5 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap');
-
 @import 'tailwindcss';
 @import 'tw-animate-css';
 @import 'shadcn/tailwind.css';
@@ -10,22 +8,122 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/*
+ * Шрифты подключаются через `next/font/local` (см. shared/lib/fonts.ts) и отдают
+ * переменные `--font-inter` / `--font-guaruja-neue` на <html>. Здесь — только
+ * маппинг на токены Tailwind: тело — Inter, заголовки — Guaruja Neue (как в проде).
+ */
 @theme inline {
-  --font-sans: 'Geist', 'Geist Variable', ui-sans-serif, system-ui, sans-serif;
-  --font-heading: var(--font-sans);
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--font-guaruja-neue), var(--font-inter), ui-sans-serif, sans-serif;
+}
+
+/*
+ * Сайтовые токены. Не входят в UI Kit (это верстка сайта), значения — как в проде.
+ * Держим их одной группой, чтобы вёрстка опиралась на семантику, а не на «магические» px.
+ */
+:root {
+  --letter-spacing-heading: 0.02em;
+
+  --block-gap-mobile: 2rem;
+  --block-gap-tablet: 3rem;
+  --block-gap-desktop: 3.5rem;
+
+  --page-content-py-mobile: 2rem;
+  --page-content-py-tablet: 3rem;
+  --page-content-py-desktop: 3.5rem;
+
+  --h2-spacing-top: 0rem;
+  --h2-spacing-bottom: 0rem;
+}
+
+/*
+ * `.container` — как в проде: max-width 1536px и адаптивные боковые отступы.
+ * Переопределяем встроенный `container` через @utility (единственный способ
+ * задать утилиту с таким именем в Tailwind v4).
+ */
+@utility container {
+  width: 100%;
+  max-width: 96rem;
+  margin-inline: auto;
+  padding-inline: calc(var(--spacing) * 4);
+
+  @media (width >= 40rem) {
+    padding-inline: calc(var(--spacing) * 6);
+  }
+
+  @media (width >= 64rem) {
+    padding-inline: calc(var(--spacing) * 8);
+  }
+}
+
+/* Fluid-типографика — значения из прод-токенов. */
+@utility text-fluid-h1 {
+  font-size: clamp(1.875rem, 1rem + 3vw, 3.5rem);
+  line-height: 1.1;
+  letter-spacing: var(--letter-spacing-heading);
+}
+
+@utility text-fluid-h1-hero {
+  font-size: clamp(1.875rem, 0.625rem + 7.5cqi, 3.5rem);
+  line-height: 1.1;
+  letter-spacing: var(--letter-spacing-heading);
+}
+
+@utility text-fluid-h2 {
+  font-size: clamp(1.875rem, 1.25rem + 1.5vw, 3rem);
+  line-height: 1.25;
+  letter-spacing: var(--letter-spacing-heading);
+}
+
+@utility text-fluid-h2-section {
+  font-size: clamp(1.5rem, 1rem + 1.75vw, 2.25rem);
+  line-height: 1.25;
+  letter-spacing: var(--letter-spacing-heading);
+}
+
+@utility text-fluid-h3 {
+  font-size: clamp(1rem, 0.25rem + 8.5cqi, 2.25rem);
+  line-height: 1;
+  letter-spacing: var(--letter-spacing-heading);
+}
+
+@utility text-fluid-h3-cards-grid {
+  font-size: clamp(1rem, 0.25rem + 8.5cqi, 2rem);
+  line-height: 1;
+  letter-spacing: var(--letter-spacing-heading);
+}
+
+@utility text-fluid-body {
+  font-size: clamp(0.875rem, min(0.75rem + 0.35vw, 0.4rem + 4.8cqi), 1.25rem);
+  line-height: 1.5;
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground text-sm leading-snug antialiased md:text-base md:leading-normal;
   }
+
+  /* Заголовки — Guaruja Neue с трекингом заголовков (как в проде). */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-heading);
+    letter-spacing: var(--letter-spacing-heading);
+  }
+
   button:not(:disabled),
   [role='button']:not(:disabled) {
     cursor: pointer;
   }
+
   html {
     @apply font-sans;
   }
