@@ -70,6 +70,7 @@ export interface Config {
     users: User;
     media: Media;
     'payload-kv': PayloadKv;
+    'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
   };
@@ -78,6 +79,7 @@ export interface Config {
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
+    'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
   };
@@ -85,8 +87,16 @@ export interface Config {
     defaultIDType: string;
   };
   fallbackLocale: ('false' | 'none' | 'null') | false | null | ('ru' | 'en') | ('ru' | 'en')[];
-  globals: {};
-  globalsSelect: {};
+  globals: {
+    header: Header;
+    home: Home;
+    'tariffs-page': TariffsPage;
+  };
+  globalsSelect: {
+    header: HeaderSelect<false> | HeaderSelect<true>;
+    home: HomeSelect<false> | HomeSelect<true>;
+    'tariffs-page': TariffsPageSelect<false> | TariffsPageSelect<true>;
+  };
   locale: 'ru' | 'en';
   widgets: {
     collections: CollectionsWidget;
@@ -182,6 +192,20 @@ export interface PayloadKv {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payload-locked-documents".
+ */
+export interface PayloadLockedDocument {
+  id: string;
+  globalSlug?: string | null;
+  user: {
+    relationTo: 'users';
+    value: string | User;
+  };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-preferences".
  */
 export interface PayloadPreference {
@@ -265,6 +289,16 @@ export interface PayloadKvSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payload-locked-documents_select".
+ */
+export interface PayloadLockedDocumentsSelect<T extends boolean = true> {
+  globalSlug?: T;
+  user?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-preferences_select".
  */
 export interface PayloadPreferencesSelect<T extends boolean = true> {
@@ -283,6 +317,595 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
   batch?: T;
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * Логотип, топбар, основное меню и кнопки входа. Общая для всех страниц.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "header".
+ */
+export interface Header {
+  id: string;
+  /**
+   * SVG или PNG с прозрачным фоном. На сайте выводится высотой 36px.
+   */
+  logo: string | Media;
+  /**
+   * Подпись логотипа для доступности (alt) и метаданных.
+   */
+  title?: string | null;
+  /**
+   * Верхняя тонкая полоса. Показывается только на десктопе.
+   */
+  topbar?: {
+    enabled?: boolean | null;
+    /**
+     * Слева: телефон, e-mail или ссылка.
+     */
+    contacts?:
+      | {
+          label: string;
+          type: 'phone' | 'email' | 'link';
+          /**
+           * Например, +7 495 648-66-73.
+           */
+          phone?: string | null;
+          email?: string | null;
+          /**
+           * Внутренний путь (/contacts) или внешний адрес.
+           */
+          href?: string | null;
+          /**
+           * Иконка из набора UI Kit: единый размер и стиль.
+           */
+          icon?: ('none' | 'phone' | 'mail' | 'search' | 'support' | 'book') | null;
+          id?: string | null;
+        }[]
+      | null;
+    /**
+     * Справа: поиск, партнёрам, контакты, база знаний.
+     */
+    links?:
+      | {
+          label: string;
+          /**
+           * Внутренний путь (/tariffs) или внешний адрес (https://…).
+           */
+          href: string;
+          /**
+           * Иконка из набора UI Kit: единый размер и стиль.
+           */
+          icon?: ('none' | 'phone' | 'mail' | 'search' | 'support' | 'book') | null;
+          openInNewTab?: boolean | null;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  /**
+   * Основная навигация. Подпункты доступны только для типа «Выпадающее меню».
+   */
+  nav?:
+    | {
+        label: string;
+        type: 'link' | 'dropdown';
+        /**
+         * Обязательна для типа «Ссылка». Для меню — необязательна: если указана, заголовок кликабелен.
+         */
+        href?: string | null;
+        children?:
+          | {
+              label: string;
+              description?: string | null;
+              href: string;
+              /**
+               * Необязательно.
+               */
+              icon?: (string | null) | Media;
+              openInNewTab?: boolean | null;
+              id?: string | null;
+            }[]
+          | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Кнопки входа/регистрации справа. Стиль — из пресетов UI Kit.
+   */
+  actions?:
+    | {
+        label: string;
+        /**
+         * Внутренний путь (/tariffs) или внешний адрес (https://…).
+         */
+        href: string;
+        /**
+         * Оформление берётся из пресетов UI Kit. Произвольные цвета недоступны.
+         */
+        variant: 'default' | 'secondary' | 'outline' | 'ghost' | 'green' | 'white' | 'link';
+        visibility: 'both' | 'desktop' | 'mobile';
+        openInNewTab?: boolean | null;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * Контент главной страницы.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "home".
+ */
+export interface Home {
+  id: string;
+  /**
+   * Содержимое главной. Сейчас доступен блок Hero.
+   */
+  layout?:
+    | {
+        /**
+         * Одна мысль. Переносы строк сохраняются на сайте.
+         */
+        heading: string;
+        /**
+         * Необязательно. Выводится под заголовком.
+         */
+        description?: string | null;
+        /**
+         * Основная картинка Hero. Меняется без правки вёрстки.
+         */
+        image: string | Media;
+        /**
+         * Необязательно. По умолчанию берётся alt из медиафайла.
+         */
+        imageAlt?: string | null;
+        /**
+         * Меняет только порядок колонок. Сетка и отступы фиксированы.
+         */
+        mediaSide?: ('right' | 'left') | null;
+        /**
+         * Пилюли под заголовком. Цвет берётся из пресета продукта.
+         */
+        productPills?:
+          | {
+              /**
+               * Определяет акцентные цвета из темы. Произвольные цвета недоступны.
+               */
+              product: 'meetings' | 'messenger' | 'mail' | 'webinars' | 'ai' | 'drive' | 'board' | 'broadcasts';
+              label: string;
+              href: string;
+              /**
+               * Необязательно. Без неё используется иконка продукта по умолчанию.
+               */
+              icon?: (string | null) | Media;
+              id?: string | null;
+            }[]
+          | null;
+        /**
+         * Основные действия Hero. Размер кнопок фиксирован.
+         */
+        ctas?:
+          | {
+              label: string;
+              href: string;
+              /**
+               * Оформление берётся из пресетов UI Kit. Произвольные цвета недоступны.
+               */
+              variant: 'default' | 'secondary' | 'outline' | 'ghost' | 'green' | 'white' | 'link';
+              openInNewTab?: boolean | null;
+              id?: string | null;
+            }[]
+          | null;
+        id?: string | null;
+        blockName?: string | null;
+        blockType: 'hero';
+      }[]
+    | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * Контент страницы /tariffs.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "tariffs-page".
+ */
+export interface TariffsPage {
+  id: string;
+  /**
+   * Например, «Подписки на продукты».
+   */
+  title: string;
+  /**
+   * Необязательно.
+   */
+  lead?: string | null;
+  /**
+   * Переключатель «3 / 6 / 12 мес». Значение месяцев сопоставляется с ценами в вариантах тарифов.
+   */
+  periods?:
+    | {
+        months: number;
+        /**
+         * Например, −10%. Необязательно.
+         */
+        discount?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Порядок вкладок над карточками. Вкладки без тарифов не выводятся.
+   */
+  products?:
+    | {
+        /**
+         * Определяет акцентные цвета из темы. Произвольные цвета недоступны.
+         */
+        product: 'meetings' | 'messenger' | 'mail' | 'webinars' | 'ai' | 'drive' | 'board' | 'broadcasts';
+        label: string;
+        badge?: ('none' | 'ai') | null;
+        /**
+         * Вкладка отображается приглушённой и не переключается.
+         */
+        disabled?: boolean | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Карточки тарифов. Показываются на вкладке своего продукта (или на всех, если продукт не указан).
+   */
+  plans?:
+    | {
+        /**
+         * Вкладка, на которой показывать карточку. Пусто — карточка на всех вкладках.
+         */
+        product?: ('meetings' | 'messenger' | 'mail' | 'webinars' | 'ai' | 'drive' | 'board' | 'broadcasts') | null;
+        title: string;
+        highlighted?: boolean | null;
+        /**
+         * Вариант = тир (например, число докладчиков) со своими ценами по периодам. Если у тарифа нет тиров — оставьте один вариант с пустым названием.
+         */
+        variants?:
+          | {
+              /**
+               * Например, «10 докладчиков». Пусто — селектор в карточке не показывается.
+               */
+              label?: string | null;
+              /**
+               * Цена для каждого периода из списка «Периоды оплаты».
+               */
+              prices?:
+                | {
+                    months: number;
+                    /**
+                     * Текст как на сайте: «Бесплатно», «4 837 ₽», «По запросу».
+                     */
+                    price: string;
+                    /**
+                     * Например, «при оплате за 3 месяца».
+                     */
+                    note?: string | null;
+                    id?: string | null;
+                  }[]
+                | null;
+              id?: string | null;
+            }[]
+          | null;
+        /**
+         * Иконки продуктов в карточке (для тарифа с полным набором).
+         */
+        includesProducts?:
+          | {
+              /**
+               * Определяет акцентные цвета из темы. Произвольные цвета недоступны.
+               */
+              product: 'meetings' | 'messenger' | 'mail' | 'webinars' | 'ai' | 'drive' | 'board' | 'broadcasts';
+              id?: string | null;
+            }[]
+          | null;
+        featureGroups?:
+          | {
+              /**
+               * Необязательно.
+               */
+              title?: string | null;
+              items?:
+                | {
+                    text: string;
+                    id?: string | null;
+                  }[]
+                | null;
+              id?: string | null;
+            }[]
+          | null;
+        /**
+         * Цвет кнопки берётся из продукта тарифа.
+         */
+        primaryCta: {
+          label: string;
+          href: string;
+        };
+        /**
+         * Необязательно. Контурная кнопка в цвете продукта.
+         */
+        secondaryCta?: {
+          label?: string | null;
+          href?: string | null;
+        };
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Карусель пакетов из нескольких продуктов.
+   */
+  bundles?:
+    | {
+        title: string;
+        subtitle?: string | null;
+        /**
+         * Фон — из пресетов. Произвольные цвета недоступны.
+         */
+        tone: 'green' | 'blue' | 'indigo';
+        chips?:
+          | {
+              /**
+               * Определяет акцентные цвета из темы. Произвольные цвета недоступны.
+               */
+              product: 'meetings' | 'messenger' | 'mail' | 'webinars' | 'ai' | 'drive' | 'board' | 'broadcasts';
+              label: string;
+              /**
+               * Необязательно. SVG/PNG из медиатеки. Без иконки — цветная плашка продукта
+               */
+              icon?: (string | null) | Media;
+              id?: string | null;
+            }[]
+          | null;
+        cta: {
+          label: string;
+          href: string;
+        };
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Тёмная полоса с телефоном внизу страницы.
+   */
+  consultation?: {
+    title?: string | null;
+    text?: string | null;
+    /**
+     * Например, +7 495 648-66-73.
+     */
+    phone?: string | null;
+    phoneLabel?: string | null;
+    cta?: {
+      label?: string | null;
+      href?: string | null;
+    };
+  };
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "header_select".
+ */
+export interface HeaderSelect<T extends boolean = true> {
+  logo?: T;
+  title?: T;
+  topbar?:
+    | T
+    | {
+        enabled?: T;
+        contacts?:
+          | T
+          | {
+              label?: T;
+              type?: T;
+              phone?: T;
+              email?: T;
+              href?: T;
+              icon?: T;
+              id?: T;
+            };
+        links?:
+          | T
+          | {
+              label?: T;
+              href?: T;
+              icon?: T;
+              openInNewTab?: T;
+              id?: T;
+            };
+      };
+  nav?:
+    | T
+    | {
+        label?: T;
+        type?: T;
+        href?: T;
+        children?:
+          | T
+          | {
+              label?: T;
+              description?: T;
+              href?: T;
+              icon?: T;
+              openInNewTab?: T;
+              id?: T;
+            };
+        id?: T;
+      };
+  actions?:
+    | T
+    | {
+        label?: T;
+        href?: T;
+        variant?: T;
+        visibility?: T;
+        openInNewTab?: T;
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "home_select".
+ */
+export interface HomeSelect<T extends boolean = true> {
+  layout?:
+    | T
+    | {
+        hero?:
+          | T
+          | {
+              heading?: T;
+              description?: T;
+              image?: T;
+              imageAlt?: T;
+              mediaSide?: T;
+              productPills?:
+                | T
+                | {
+                    product?: T;
+                    label?: T;
+                    href?: T;
+                    icon?: T;
+                    id?: T;
+                  };
+              ctas?:
+                | T
+                | {
+                    label?: T;
+                    href?: T;
+                    variant?: T;
+                    openInNewTab?: T;
+                    id?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "tariffs-page_select".
+ */
+export interface TariffsPageSelect<T extends boolean = true> {
+  title?: T;
+  lead?: T;
+  periods?:
+    | T
+    | {
+        months?: T;
+        discount?: T;
+        id?: T;
+      };
+  products?:
+    | T
+    | {
+        product?: T;
+        label?: T;
+        badge?: T;
+        disabled?: T;
+        id?: T;
+      };
+  plans?:
+    | T
+    | {
+        product?: T;
+        title?: T;
+        highlighted?: T;
+        variants?:
+          | T
+          | {
+              label?: T;
+              prices?:
+                | T
+                | {
+                    months?: T;
+                    price?: T;
+                    note?: T;
+                    id?: T;
+                  };
+              id?: T;
+            };
+        includesProducts?:
+          | T
+          | {
+              product?: T;
+              id?: T;
+            };
+        featureGroups?:
+          | T
+          | {
+              title?: T;
+              items?:
+                | T
+                | {
+                    text?: T;
+                    id?: T;
+                  };
+              id?: T;
+            };
+        primaryCta?:
+          | T
+          | {
+              label?: T;
+              href?: T;
+            };
+        secondaryCta?:
+          | T
+          | {
+              label?: T;
+              href?: T;
+            };
+        id?: T;
+      };
+  bundles?:
+    | T
+    | {
+        title?: T;
+        subtitle?: T;
+        tone?: T;
+        chips?:
+          | T
+          | {
+              product?: T;
+              label?: T;
+              icon?: T;
+              id?: T;
+            };
+        cta?:
+          | T
+          | {
+              label?: T;
+              href?: T;
+            };
+        id?: T;
+      };
+  consultation?:
+    | T
+    | {
+        title?: T;
+        text?: T;
+        phone?: T;
+        phoneLabel?: T;
+        cta?:
+          | T
+          | {
+              label?: T;
+              href?: T;
+            };
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
