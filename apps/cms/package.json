@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "cross-env CMS_ADMIN_ASSET_PREFIX=/admin NODE_OPTIONS=--no-deprecation next dev -p 3333 --hostname localhost",
+    "dev": "cross-env CMS_ADMIN_ASSET_PREFIX=admin NODE_OPTIONS=--no-deprecation next dev -p 3333 --hostname localhost",
     "build": "cross-env NODE_OPTIONS=\"--no-deprecation --max-old-space-size=8000\" next build",
     "start": "cross-env NODE_OPTIONS=--no-deprecation next start -p 3333",
     "typecheck": "tsc --noEmit",

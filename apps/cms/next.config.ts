@@ -16,7 +16,23 @@ const cmsSecurityHeaders = [
   { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
 ]
 
-const cmsAdminAssetPrefix = process.env.CMS_ADMIN_ASSET_PREFIX?.trim() || undefined
+// Значение задаётся в npm-скрипте без ведущего слэша (CMS_ADMIN_ASSET_PREFIX=admin),
+// потому что Git Bash (MSYS2) под Windows переписывает аргументы вида
+// CMS_ADMIN_ASSET_PREFIX=/admin в C:/Program Files/Git/admin. Из-за этого ломается
+// assetPrefix админки и она навсегда остаётся на «Загрузка...». Слэш добавляем здесь.
+function normalizeAssetPrefix(value: string | undefined): string | undefined {
+  const trimmed = value?.trim()
+  if (!trimmed) {
+    return undefined
+  }
+  // Уже корневой путь (/admin) или абсолютный URL (https://cdn.example.com) — не трогаем.
+  if (trimmed.startsWith('/') || /^[a-z][a-z0-9+.-]*:\/\//i.test(trimmed)) {
+    return trimmed
+  }
+  return `/${trimmed}`
+}
+
+const cmsAdminAssetPrefix = normalizeAssetPrefix(process.env.CMS_ADMIN_ASSET_PREFIX)
 
 const nextConfig: NextConfig = {
   output: 'standalone',
