@@ -83,7 +83,7 @@ import { Download } from '@/shared/lib/icons'
 После клона с GitHub достаточно одной команды — она создаст `.env`, поставит зависимости и поднимет Docker с **готовым дампом** (пользователь CMS, медиа, файлы в MinIO).
 
 ```bash
-git clone https://github.com/thefubon/under-construction.git
+git clone https://github.com/Clasen00/under-construction.git
 cd under-construction
 pnpm setup
 pnpm dev

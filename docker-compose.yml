@@ -43,7 +43,8 @@ services:
     restart: 'no'
     volumes:
       - ./backup/mongo:/backup:ro
-    entrypoint: ['bash', '/backup/restore.sh']
+    entrypoint: sh
+    command: ['-c', 'sh /backup/restore.sh']
 
   # Порты 9002/9003 — чтобы не пересекаться с другим MinIO на 9000/9001.
   # ВНИМАНИЕ: официальные образы minio/minio больше не публикуются в Docker Hub,
@@ -75,7 +76,8 @@ services:
     restart: 'no'
     volumes:
       - ./backup/minio:/seed:ro
-    entrypoint: ['/bin/sh', '/seed/restore.sh']
+    entrypoint: sh
+    command: ['-c', 'sh /seed/restore.sh']
     environment:
       MINIO_ROOT_USER: ${S3_ACCESS_KEY_ID:-minioadmin}
       MINIO_ROOT_PASSWORD: ${S3_SECRET_ACCESS_KEY:-minioadmin}
