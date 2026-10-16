@@ -1,0 +1,4 @@
+# Windows-чекаут (core.autocrlf=true) не должен ломать файлы, которые читает bash:
+# CRLF в них даёт ошибки вида `$'\r': command not found` и ломает `set -euo pipefail`.
+*.sh text eol=lf
+.env.example text eol=lf
