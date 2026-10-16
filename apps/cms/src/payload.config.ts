@@ -14,6 +14,9 @@ import sharp from 'sharp'
 
 import { Media } from './collections/Media'
 import { Users } from './collections/Users'
+import { Header } from './globals/Header'
+import { Home } from './globals/Home'
+import { TariffsPage } from './globals/TariffsPage'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -71,7 +74,7 @@ export default buildConfig({
     },
   },
   collections: [Users, Media],
-  globals: [],
+  globals: [Header, Home, TariffsPage],
   plugins: [
     ...(useS3Storage
       ? [
