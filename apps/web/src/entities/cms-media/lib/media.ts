@@ -9,6 +9,20 @@ export function resolveMediaUrl(media: unknown, cmsBaseUrl: string): string | nu
   }
 
   if (url.startsWith('http://') || url.startsWith('https://')) {
+    // Payload при заданном `serverURL` отдаёт absolute-URL на origin сайта
+    // (например, http://localhost:3033/api/media/file/hero.png). `next/image`
+    // такой src на собственный origin не принимает, поэтому оставляем путь:
+    // медиа доступно same-origin через rewrite `/api/*`.
+    try {
+      const parsed = new URL(url)
+
+      if (parsed.pathname.startsWith('/api/')) {
+        return `${parsed.pathname}${parsed.search}`
+      }
+    } catch {
+      // некорректный URL — вернём как есть
+    }
+
     return url
   }
 

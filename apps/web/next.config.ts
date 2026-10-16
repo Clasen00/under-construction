@@ -16,6 +16,32 @@ const dirname = path.dirname(__filename)
 const cmsInternalUrl = process.env.CMS_INTERNAL_URL ?? 'http://localhost:3333'
 const cmsImagePort = new URL(cmsInternalUrl).port || '3333'
 
+/**
+ * `next/image` разрешает картинки только с известных origin. Медиа CMS отдаётся
+ * по `/api/media/file/**` и доступно как с origin сайта (rewrite), так и с
+ * публичного origin CMS. Паттерны собираем из env, а не хардкодим порт.
+ */
+function mediaRemotePatterns(url: string | undefined) {
+  if (!url) {
+    return []
+  }
+
+  try {
+    const parsed = new URL(url)
+
+    return [
+      {
+        protocol: parsed.protocol.replace(':', '') as 'http' | 'https',
+        hostname: parsed.hostname,
+        ...(parsed.port ? { port: parsed.port } : {}),
+        pathname: '/api/media/file/**',
+      },
+    ]
+  } catch {
+    return []
+  }
+}
+
 const nextConfig: NextConfig = {
   output: 'standalone',
   outputFileTracingRoot: path.resolve(dirname, '../..'),
@@ -34,9 +60,13 @@ const nextConfig: NextConfig = {
   },
   async rewrites() {
     return [
+      // ВАЖНО: префикс /admin сохраняется намеренно. CMS запущена с
+      // assetPrefix=/admin, поэтому её HMR-эндпоинт — /admin/_next/hmr, а не
+      // /_next/hmr. Если убрать /admin в destination, HMR-сокет админки уходит
+      // на несуществующий путь и навсегда висит в pending.
       {
         source: '/admin/_next/:path*',
-        destination: `${cmsInternalUrl}/_next/:path*`,
+        destination: `${cmsInternalUrl}/admin/_next/:path*`,
       },
       {
         source: '/admin/:path*',
@@ -64,6 +94,8 @@ const nextConfig: NextConfig = {
         port: cmsImagePort,
         pathname: '/api/media/file/**',
       },
+      ...mediaRemotePatterns(process.env.CMS_PUBLIC_URL),
+      ...mediaRemotePatterns(process.env.WEB_PUBLIC_URL),
       {
         protocol: 'http',
         hostname: '127.0.0.1',
